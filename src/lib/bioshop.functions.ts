@@ -197,7 +197,9 @@ export const getShopOverview = createServerFn({ method: "GET" })
     const [ordersResult, productsResult] = await Promise.all([
       client
         .from("orders")
-        .select("id, buyer_name, delivery_city, quantity, unit_price_mmk, order_status, created_at, products(name)")
+        .select(
+          "id, buyer_name, delivery_city, quantity, unit_price_mmk, order_status, created_at, products(name)",
+        )
         .eq("seller_id", seller.id)
         .order("created_at", { ascending: false }),
       client.from("products").select("id, name, stock_quantity").eq("seller_id", seller.id),

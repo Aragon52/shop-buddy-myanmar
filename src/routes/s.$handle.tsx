@@ -203,7 +203,10 @@ function StorePage() {
         )}
 
         {selected ? (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-4"
+          >
             <h2 className="text-sm font-semibold">Order {selected.name}</h2>
             <div className="space-y-1.5">
               <Label htmlFor="buyerName">Your name</Label>
@@ -211,7 +214,13 @@ function StorePage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="buyerPhone">Phone number</Label>
-              <Input id="buyerPhone" name="buyerPhone" required maxLength={40} placeholder="09 7xx xxx xxx" />
+              <Input
+                id="buyerPhone"
+                name="buyerPhone"
+                required
+                maxLength={40}
+                placeholder="09 7xx xxx xxx"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -220,12 +229,26 @@ function StorePage() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="quantity">Quantity</Label>
-                <Input id="quantity" name="quantity" type="number" min={1} max={50} defaultValue={1} required />
+                <Input
+                  id="quantity"
+                  name="quantity"
+                  type="number"
+                  min={1}
+                  max={50}
+                  defaultValue={1}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="deliveryAddress">Delivery address</Label>
-              <Textarea id="deliveryAddress" name="deliveryAddress" required maxLength={400} rows={3} />
+              <Textarea
+                id="deliveryAddress"
+                name="deliveryAddress"
+                required
+                maxLength={400}
+                rows={3}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="screenshot">Payment screenshot</Label>
