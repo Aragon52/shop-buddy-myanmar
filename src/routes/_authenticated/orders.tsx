@@ -93,7 +93,12 @@ function OrdersPage() {
       title="Orders"
       subtitle={`${orders.length} total`}
       action={
-        <Button variant="outline" size="sm" onClick={() => exportCsv(visible)} disabled={!visible.length}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportCsv(visible)}
+          disabled={!visible.length}
+        >
           <Download className="size-4" />
           Export CSV
         </Button>
@@ -205,9 +210,7 @@ function OrdersPage() {
                   <Button
                     size="lg"
                     disabled={mutation.isPending || selected.status === "confirmed"}
-                    onClick={() =>
-                      mutation.mutate({ orderId: selected.id, status: "confirmed" })
-                    }
+                    onClick={() => mutation.mutate({ orderId: selected.id, status: "confirmed" })}
                   >
                     Confirm order
                   </Button>

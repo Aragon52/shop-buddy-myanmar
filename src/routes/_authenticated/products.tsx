@@ -188,7 +188,12 @@ function ProductDialog({
       toast.error("Please enter a product name.");
       return;
     }
-    if (!Number.isFinite(priceMmk) || priceMmk < 0 || !Number.isFinite(stockQuantity) || stockQuantity < 0) {
+    if (
+      !Number.isFinite(priceMmk) ||
+      priceMmk < 0 ||
+      !Number.isFinite(stockQuantity) ||
+      stockQuantity < 0
+    ) {
       toast.error("Price and stock must be positive numbers.");
       return;
     }

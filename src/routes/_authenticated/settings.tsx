@@ -109,12 +109,42 @@ function SettingsPage() {
             Buyers see these details on your checkout page so they can transfer the payment.
           </p>
           <div className="mt-3 space-y-4">
-            <Field id="kbzpayName" label="KBZPay account name" defaultValue={seller.kbzpayName} maxLength={80} />
-            <Field id="kbzpayNumber" label="KBZPay number" defaultValue={seller.kbzpayNumber} maxLength={40} />
-            <Field id="wavepayName" label="WavePay account name" defaultValue={seller.wavepayName} maxLength={80} />
-            <Field id="wavepayNumber" label="WavePay number" defaultValue={seller.wavepayNumber} maxLength={40} />
-            <Field id="ayapayName" label="AYAPay account name" defaultValue={seller.ayapayName} maxLength={80} />
-            <Field id="ayapayNumber" label="AYAPay number" defaultValue={seller.ayapayNumber} maxLength={40} />
+            <Field
+              id="kbzpayName"
+              label="KBZPay account name"
+              defaultValue={seller.kbzpayName}
+              maxLength={80}
+            />
+            <Field
+              id="kbzpayNumber"
+              label="KBZPay number"
+              defaultValue={seller.kbzpayNumber}
+              maxLength={40}
+            />
+            <Field
+              id="wavepayName"
+              label="WavePay account name"
+              defaultValue={seller.wavepayName}
+              maxLength={80}
+            />
+            <Field
+              id="wavepayNumber"
+              label="WavePay number"
+              defaultValue={seller.wavepayNumber}
+              maxLength={40}
+            />
+            <Field
+              id="ayapayName"
+              label="AYAPay account name"
+              defaultValue={seller.ayapayName}
+              maxLength={80}
+            />
+            <Field
+              id="ayapayNumber"
+              label="AYAPay number"
+              defaultValue={seller.ayapayNumber}
+              maxLength={40}
+            />
           </div>
         </section>
 
