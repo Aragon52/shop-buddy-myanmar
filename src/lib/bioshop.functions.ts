@@ -506,7 +506,18 @@ export const getPublicStore = createServerFn({ method: "GET" })
       }),
     );
 
-    return { seller: toSeller(seller as SellerRow), products: withImages };
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const host = getRequestHeader("host") ?? "";
+    const proto = getRequestHeader("x-forwarded-proto") ?? "https";
+    const handle = data.handle.toLowerCase();
+    const origin = host ? `${proto}://${host}` : "";
+
+    return {
+      seller: toSeller(seller as SellerRow),
+      products: withImages,
+      storeUrl: origin ? `${origin}/s/${handle}` : null,
+      ogImageUrl: origin ? `${origin}/api/public/og/${handle}` : null,
+    };
   });
 
 const checkoutInput = z.object({
@@ -619,6 +630,20 @@ export const placeCartOrder = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
 
+    await notifySellerOfOrder({
+      sellerId: data.sellerId,
+      buyerName: data.buyerName,
+      buyerPhone: data.buyerPhone,
+      deliveryCity: data.deliveryCity,
+      deliveryAddress: data.deliveryAddress,
+      items: lines.map((line) => ({
+        name: line.name,
+        quantity: line.quantity,
+        totalMmk: line.totalMmk,
+      })),
+      total: lines.reduce((sum, line) => sum + line.totalMmk, 0),
+    });
+
     return {
       ok: true,
       items: lines.map((line) => ({
@@ -628,4 +653,139 @@ export const placeCartOrder = createServerFn({ method: "POST" })
       })),
       total: lines.reduce((sum, line) => sum + line.totalMmk, 0),
     };
+  });
+
+type NotifyInput = {
+  sellerId: string;
+  buyerName: string;
+  buyerPhone: string;
+  deliveryCity: string;
+  deliveryAddress: string;
+  items: { name: string; quantity: number; totalMmk: number }[];
+  total: number;
+};
+
+/** Sends the seller an instant Telegram alert. Never blocks the buyer's order. */
+const notifySellerOfOrder = async (input: NotifyInput): Promise<void> => {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [{ data: seller }, { data: alerts }] = await Promise.all([
+      supabaseAdmin.from("sellers").select("business_name").eq("id", input.sellerId).maybeSingle(),
+      supabaseAdmin
+        .from("seller_alerts")
+        .select("telegram_chat_id")
+        .eq("seller_id", input.sellerId)
+        .maybeSingle(),
+    ]);
+
+    const chatId = alerts?.telegram_chat_id ?? "";
+    if (!chatId) return;
+
+    const { buildOrderAlertMessage } = await import("@/lib/order-alert");
+    const { sendTelegramMessage } = await import("@/lib/telegram.server");
+
+    await sendTelegramMessage(
+      chatId,
+      buildOrderAlertMessage({
+        shopName: seller?.business_name ?? "Your shop",
+        buyerName: input.buyerName,
+        buyerPhone: input.buyerPhone,
+        deliveryCity: input.deliveryCity,
+        deliveryAddress: input.deliveryAddress,
+        items: input.items,
+        total: input.total,
+      }),
+    );
+  } catch {
+    // Alerting is best-effort; the order is already saved.
+  }
+};
+
+const sellerIdForUser = async (client: MinimalClient, userId: string): Promise<string> => {
+  const { data } = await client.from("sellers").select("id").eq("user_id", userId).maybeSingle();
+  const seller = data as { id: string } | null;
+  if (!seller) throw new Error("Shop not found.");
+  return seller.id;
+};
+
+/** Reads the seller's order-alert settings. */
+export const getAlertSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const client = context.supabase as unknown as MinimalClient;
+    const sellerId = await sellerIdForUser(client, context.userId);
+    const { data } = await client
+      .from("seller_alerts")
+      .select("telegram_chat_id")
+      .eq("seller_id", sellerId)
+      .maybeSingle();
+    const row = data as { telegram_chat_id: string } | null;
+    return { telegramChatId: row?.telegram_chat_id ?? "" };
+  });
+
+/** Saves the Telegram chat that should receive new-order alerts. */
+export const saveAlertSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        telegramChatId: z
+          .string()
+          .trim()
+          .max(40)
+          .regex(/^-?[0-9]*$/, "Chat id should only contain numbers"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const client = context.supabase as unknown as MinimalClient;
+    const sellerId = await sellerIdForUser(client, context.userId);
+    const { error } = await client
+      .from("seller_alerts")
+      .upsert({ seller_id: sellerId, telegram_chat_id: data.telegramChatId });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Sends a test alert so the seller can confirm Telegram works. */
+export const sendTestAlert = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const client = context.supabase as unknown as MinimalClient;
+    const sellerId = await sellerIdForUser(client, context.userId);
+    const { data } = await client
+      .from("seller_alerts")
+      .select("telegram_chat_id")
+      .eq("seller_id", sellerId)
+      .maybeSingle();
+    const chatId = (data as { telegram_chat_id: string } | null)?.telegram_chat_id ?? "";
+
+    const { sendTelegramMessage } = await import("@/lib/telegram.server");
+    const result = await sendTelegramMessage(
+      chatId,
+      "✅ BioShop test alert — new orders will arrive here.",
+    );
+    if (!result.ok) throw new Error(result.error);
+    return { ok: true };
+  });
+
+/** Lightweight polling signal used to alert the seller inside the dashboard. */
+export const getOrderPulse = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const client = context.supabase as unknown as MinimalClient;
+    const sellerId = await sellerIdForUser(client, context.userId);
+    const { data } = await client
+      .from("orders")
+      .select("id, buyer_name, created_at")
+      .eq("seller_id", sellerId)
+      .eq("order_status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const row = data as { id: string; buyer_name: string; created_at: string } | null;
+    return row
+      ? { latestOrderId: row.id, buyerName: row.buyer_name, createdAt: row.created_at }
+      : { latestOrderId: null, buyerName: null, createdAt: null };
   });
