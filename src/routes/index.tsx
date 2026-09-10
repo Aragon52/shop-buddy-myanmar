@@ -3,7 +3,15 @@ import { BarChart3, Link2, PackageCheck, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getSiteOrigin } from "@/lib/site.functions";
+
+const CARD_DELAYS = [
+  "[animation-delay:320ms]",
+  "[animation-delay:380ms]",
+  "[animation-delay:440ms]",
+  "[animation-delay:500ms]",
+] as const;
 
 
 export const Route = createFileRoute("/")({
