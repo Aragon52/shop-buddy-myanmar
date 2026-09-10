@@ -260,6 +260,27 @@ function StorePage() {
           <p className="mt-2 text-xs text-muted-foreground">
             No account needed — pick your items, pay, and share your delivery details.
           </p>
+          {store.seller.shopAddress || store.seller.shopMapUrl ? (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-border bg-muted/50 p-3 text-xs">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div className="min-w-0 space-y-1">
+                <p className="font-medium">Shop location</p>
+                {store.seller.shopAddress ? (
+                  <p className="text-muted-foreground">{store.seller.shopAddress}</p>
+                ) : null}
+                {store.seller.shopMapUrl ? (
+                  <a
+                    href={store.seller.shopMapUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-primary underline"
+                  >
+                    See shop on the map
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       </header>
 
