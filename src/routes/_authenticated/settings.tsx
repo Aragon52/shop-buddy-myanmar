@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { MYANMAR_CITIES } from "@/lib/format";
+import { SHOP_CATEGORIES } from "@/lib/shop-themes";
 import {
   getAlertSettings,
   getShopOverview,
@@ -60,6 +61,7 @@ function SettingsPage() {
   const save = useServerFn(updateShopSettings);
   const [busy, setBusy] = useState(false);
   const seller = data.seller;
+  const [shopCategory, setShopCategory] = useState(seller.shopCategory);
   const [codEnabled, setCodEnabled] = useState(seller.codEnabled);
   const [codCities, setCodCities] = useState<string[]>(seller.codCities);
   const [shopPin, setShopPin] = useState<PickedLocation | null>(
@@ -92,6 +94,7 @@ function SettingsPage() {
           wavepayNumber: value("wavepayNumber"),
           ayapayName: value("ayapayName"),
           ayapayNumber: value("ayapayNumber"),
+          shopCategory,
           codEnabled,
           codCities,
           shopAddress: value("shopAddress"),
@@ -143,6 +146,35 @@ function SettingsPage() {
               required
               hint="Your link is /s/your-handle"
             />
+            <div className="space-y-2">
+              <Label>What do you sell?</Label>
+              <p className="text-xs text-muted-foreground">
+                Your store page colours change to match what you sell.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {SHOP_CATEGORIES.map((category) => {
+                  const active = category.value === shopCategory;
+                  return (
+                    <button
+                      key={category.value}
+                      type="button"
+                      onClick={() => setShopCategory(category.value)}
+                      aria-pressed={active}
+                      className={`rounded-xl border p-3 text-left transition-colors ${
+                        active
+                          ? "border-primary bg-primary/5"
+                          : "border-border bg-background hover:bg-muted"
+                      }`}
+                    >
+                      <span className="block text-sm font-medium">{category.label}</span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {category.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </section>
 

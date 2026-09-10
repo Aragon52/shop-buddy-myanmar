@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicStore, placeCartOrder } from "@/lib/maket.functions";
 import { formatMmk, MYANMAR_CITIES } from "@/lib/format";
+import { shopCategoryLabel, shopThemeClass } from "@/lib/shop-themes";
 
 const LocationPicker = lazy(() =>
   import("@/components/location-picker").then((module) => ({ default: module.LocationPicker })),
@@ -216,7 +217,9 @@ function StorePage() {
 
   if (done) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-5 py-10">
+      <div
+        className={`flex min-h-screen items-center justify-center bg-background px-5 py-10 ${shopThemeClass(store.seller.shopCategory)}`}
+      >
         <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 text-center shadow-sm">
           <CheckCircle2 className="mx-auto size-12 text-success" />
           <h1 className="mt-4 text-xl font-bold">Order received</h1>
@@ -249,7 +252,7 @@ function StorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className={`min-h-screen bg-background pb-32 ${shopThemeClass(store.seller.shopCategory)}`}>
       <header className="border-b border-border bg-card px-5 py-6">
         <div className="mx-auto max-w-2xl">
           <ShoppingBag className="size-6 text-primary" />
@@ -257,6 +260,9 @@ function StorePage() {
             {store.seller.businessName}
           </h1>
           <p className="text-sm text-muted-foreground">@{store.seller.tiktokHandle}</p>
+          <p className="mt-2 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+            {shopCategoryLabel(store.seller.shopCategory)}
+          </p>
           <p className="mt-2 text-xs text-muted-foreground">
             No account needed — pick your items, pay, and share your delivery details.
           </p>
