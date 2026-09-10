@@ -82,7 +82,7 @@ function StorePage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<SuccessOrder | null>(null);
 
-  const products = store?.products ?? [];
+  const products = useMemo(() => store?.products ?? [], [store]);
 
   const lines = useMemo(
     () =>
