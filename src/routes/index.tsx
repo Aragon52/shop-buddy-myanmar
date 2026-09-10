@@ -49,6 +49,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 py-14">
+        <BrandMark showTagline className="mb-9" />
         <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
           For TikTok sellers in Myanmar
         </span>
