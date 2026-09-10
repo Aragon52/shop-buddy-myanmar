@@ -17,6 +17,10 @@ export type Seller = {
   ayapayNumber: string;
   codEnabled: boolean;
   codCities: string[];
+  shopAddress: string;
+  shopLat: number | null;
+  shopLng: number | null;
+  shopMapUrl: string | null;
 };
 
 export type Product = {
