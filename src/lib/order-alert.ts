@@ -18,7 +18,9 @@ export type OrderAlertInput = {
 
 /** Builds the plain-text new-order alert sent to the seller. */
 export const buildOrderAlertMessage = (input: OrderAlertInput): string => {
-  const lines = input.items.map((item) => `• ${item.name} × ${item.quantity} — ${formatMmk(item.totalMmk)}`);
+  const lines = input.items.map(
+    (item) => `• ${item.name} × ${item.quantity} — ${formatMmk(item.totalMmk)}`,
+  );
 
   return [
     `🛍️ New order — ${input.shopName}`,

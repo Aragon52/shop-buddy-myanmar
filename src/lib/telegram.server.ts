@@ -40,9 +40,10 @@ export const sendTelegramMessage = async (
     return { ok: false, error: "Telegram is not connected for this app yet." };
   }
 
-  const payload = (await response.json().catch(() => null)) as
-    | { ok?: boolean; description?: string }
-    | null;
+  const payload = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    description?: string;
+  } | null;
 
   if (!response.ok || payload?.ok === false) {
     return {
