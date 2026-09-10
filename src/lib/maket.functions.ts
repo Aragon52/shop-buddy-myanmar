@@ -452,6 +452,8 @@ const settingsInput = z.object({
   wavepayNumber: z.string().trim().max(40),
   ayapayName: z.string().trim().max(80),
   ayapayNumber: z.string().trim().max(40),
+  codEnabled: z.boolean(),
+  codCities: z.array(z.string().trim().min(1).max(60)).max(60),
 });
 
 export const updateShopSettings = createServerFn({ method: "POST" })
@@ -471,6 +473,8 @@ export const updateShopSettings = createServerFn({ method: "POST" })
         wavepay_number: data.wavepayNumber,
         ayapay_name: data.ayapayName,
         ayapay_number: data.ayapayNumber,
+        cod_enabled: data.codEnabled,
+        cod_cities: data.codEnabled ? data.codCities : [],
       })
       .eq("user_id", context.userId);
 
