@@ -203,7 +203,7 @@ function OrderAlertsSection() {
   const handleTest = async () => {
     setBusy(true);
     try {
-      await test({ data: {} });
+      await test();
       toast.success("Test alert sent to Telegram.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not send the test alert.");
