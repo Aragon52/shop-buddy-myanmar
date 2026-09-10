@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { listOrders, updateOrderStatus, type Order } from "@/lib/bioshop.functions";
+import { listOrders, updateOrderStatus, type Order } from "@/lib/maket.functions";
 import { formatDateTime, formatMmk, ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/format";
 
 const ordersQuery = queryOptions({

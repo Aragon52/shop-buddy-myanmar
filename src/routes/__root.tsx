@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BioShop — order management for social sellers" },
+      { title: "Maket — order management for social sellers" },
       {
         name: "description",
         content:
-          "BioShop helps Myanmar TikTok sellers collect orders, verify payments and track stock from their phone.",
+          "Maket helps Myanmar TikTok sellers collect orders, verify payments and track stock from their phone.",
       },
-      { property: "og:title", content: "BioShop — order management for social sellers" },
+      { property: "og:title", content: "Maket — order management for social sellers" },
       {
         property: "og:description",
         content: "Collect orders from your TikTok bio link and manage them from your phone.",

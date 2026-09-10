@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { getShopOverview } from "@/lib/bioshop.functions";
+import { getShopOverview } from "@/lib/maket.functions";
 import { formatDate, formatMmk } from "@/lib/format";
 
 const overviewQuery = queryOptions({

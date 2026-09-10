@@ -130,7 +130,7 @@ const loadOrCreateSeller = async (
 
   const created = await client
     .from("sellers")
-    .insert({ user_id: userId, tiktok_handle: handle, business_name: "My BioShop" })
+    .insert({ user_id: userId, tiktok_handle: handle, business_name: "My Maket" })
     .select(SELLER_COLUMNS)
     .single();
 
@@ -766,7 +766,7 @@ export const sendTestAlert = createServerFn({ method: "POST" })
     const { sendTelegramMessage } = await import("@/lib/telegram.server");
     const result = await sendTelegramMessage(
       chatId,
-      "✅ BioShop test alert — new orders will arrive here.",
+      "✅ Maket test alert — new orders will arrive here.",
     );
     if (!result.ok) throw new Error(result.error);
     return { ok: true };

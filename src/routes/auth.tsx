@@ -12,13 +12,13 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in to BioShop" },
+      { title: "Sign in to Maket" },
       {
         name: "description",
-        content: "Sign in or create your BioShop seller account to manage orders and stock.",
+        content: "Sign in or create your Maket seller account to manage orders and stock.",
       },
-      { property: "og:title", content: "Sign in to BioShop" },
-      { property: "og:description", content: "Manage your social commerce orders with BioShop." },
+      { property: "og:title", content: "Sign in to Maket" },
+      { property: "og:description", content: "Manage your social commerce orders with Maket." },
     ],
   }),
   component: AuthPage,
@@ -88,7 +88,7 @@ function AuthPage() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           {mode === "signin"
             ? "Sign in to manage your orders and stock."
-            : "Set up a BioShop account in a few seconds."}
+            : "Set up a Maket account in a few seconds."}
         </p>
 
         {checkEmail ? (
