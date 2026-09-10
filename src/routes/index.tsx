@@ -3,25 +3,40 @@ import { BarChart3, Link2, PackageCheck, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { getSiteOrigin } from "@/lib/site.functions";
+
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Maket — sell from your TikTok bio link" },
-      {
-        name: "description",
-        content:
-          "Maket turns your TikTok bio link into a checkout page and collects every order in one place, with payment screenshots and delivery sheets.",
-      },
-      { property: "og:title", content: "Maket — sell from your TikTok bio link" },
-      {
-        property: "og:description",
-        content: "One link in your bio. Every order, payment and delivery sheet in one dashboard.",
-      },
-    ],
-  }),
+  loader: () => getSiteOrigin(),
+  head: ({ loaderData }) => {
+    const shareImage = loaderData?.origin ? `${loaderData.origin}/share-cover.jpg` : null;
+    return {
+      meta: [
+        { title: "Maket — sell from your TikTok bio link" },
+        {
+          name: "description",
+          content:
+            "Maket turns your TikTok bio link into a checkout page and collects every order in one place, with payment screenshots and delivery sheets.",
+        },
+        { property: "og:title", content: "Maket — sell from your TikTok bio link" },
+        {
+          property: "og:description",
+          content:
+            "One link in your bio. Every order, payment and delivery sheet in one dashboard.",
+        },
+        ...(shareImage
+          ? [
+              { property: "og:image", content: shareImage },
+              { property: "og:image:alt", content: "Maket — mart in your pocket" },
+              { name: "twitter:image", content: shareImage },
+            ]
+          : []),
+      ],
+    };
+  },
   component: Landing,
 });
+
 
 const FEATURES = [
   {
