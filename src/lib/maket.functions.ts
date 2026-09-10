@@ -749,6 +749,8 @@ const notifySellerOfOrder = async (input: NotifyInput): Promise<void> => {
         buyerPhone: input.buyerPhone,
         deliveryCity: input.deliveryCity,
         deliveryAddress: input.deliveryAddress,
+        paymentMethod: input.paymentMethod,
+        mapUrl: input.mapUrl,
         items: input.items,
         total: input.total,
       }),
