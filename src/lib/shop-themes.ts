@@ -61,8 +61,15 @@ export const DEFAULT_SHOP_CATEGORY = "general";
 
 export const shopCategoryValues = SHOP_CATEGORIES.map((category) => category.value);
 
+const FALLBACK_CATEGORY: ShopCategory = {
+  value: "general",
+  label: "General store",
+  description: "A bit of everything",
+  themeClass: "theme-general",
+};
+
 export const findShopCategory = (value: string | null | undefined): ShopCategory =>
-  SHOP_CATEGORIES.find((category) => category.value === value) ?? SHOP_CATEGORIES[0];
+  SHOP_CATEGORIES.find((category) => category.value === value) ?? FALLBACK_CATEGORY;
 
 /** CSS class that re-themes the store page for a category. */
 export const shopThemeClass = (value: string | null | undefined): string =>
