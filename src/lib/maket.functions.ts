@@ -119,6 +119,10 @@ const signedUrl = async (
   return data?.signedUrl ?? null;
 };
 
+/** Builds a Google Maps link for a pinned delivery location. */
+const buildMapUrl = (lat: number | null, lng: number | null): string | null =>
+  lat === null || lng === null ? null : `https://www.google.com/maps?q=${lat},${lng}`;
+
 /** Loads the signed-in seller's shop, creating it with sample data on first visit. */
 const loadOrCreateSeller = async (
   client: MinimalClient,
