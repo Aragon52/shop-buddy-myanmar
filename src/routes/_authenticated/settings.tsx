@@ -1,9 +1,11 @@
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, LogOut } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { toast } from "sonner";
+
+import type { PickedLocation } from "@/components/location-picker";
 
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,11 @@ import {
   sendTestAlert,
   updateShopSettings,
 } from "@/lib/maket.functions";
+
+const LocationPicker = lazy(() =>
+  import("@/components/location-picker").then((module) => ({ default: module.LocationPicker })),
+);
+
 
 const alertsQuery = queryOptions({
   queryKey: ["alert-settings"],
@@ -55,6 +62,11 @@ function SettingsPage() {
   const seller = data.seller;
   const [codEnabled, setCodEnabled] = useState(seller.codEnabled);
   const [codCities, setCodCities] = useState<string[]>(seller.codCities);
+  const [shopPin, setShopPin] = useState<PickedLocation | null>(
+    seller.shopLat !== null && seller.shopLng !== null
+      ? { lat: seller.shopLat, lng: seller.shopLng }
+      : null,
+  );
 
   const toggleCity = (city: string) => {
     setCodCities((current) =>
@@ -82,6 +94,9 @@ function SettingsPage() {
           ayapayNumber: value("ayapayNumber"),
           codEnabled,
           codCities,
+          shopAddress: value("shopAddress"),
+          shopLat: shopPin?.lat ?? null,
+          shopLng: shopPin?.lng ?? null,
         },
       });
       toast.success("Shop settings saved.");
@@ -130,6 +145,39 @@ function SettingsPage() {
             />
           </div>
         </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-sm font-semibold">Business location</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Show buyers where your shop really operates from. It builds trust that the shop in your
+            TikTok videos is the same one taking their money.
+          </p>
+          <div className="mt-3 space-y-4">
+            <Field
+              id="shopAddress"
+              label="Shop address"
+              defaultValue={seller.shopAddress}
+              maxLength={200}
+              placeholder="Shop or building, street, township, city"
+            />
+            <div className="space-y-2">
+              <Label>Pin your shop on the map</Label>
+              <ClientOnly
+                fallback={<div className="h-56 w-full rounded-xl border border-border bg-muted" />}
+              >
+                <Suspense
+                  fallback={<div className="h-56 w-full rounded-xl border border-border bg-muted" />}
+                >
+                  <LocationPicker value={shopPin} onChange={setShopPin} />
+                </Suspense>
+              </ClientOnly>
+              <p className="text-xs text-muted-foreground">
+                Stand at your shop and tap "Use my location", or drag the pin to the right spot.
+              </p>
+            </div>
+          </div>
+        </section>
+
 
         <section className="rounded-2xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold">Payment collection</h2>

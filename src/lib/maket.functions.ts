@@ -17,6 +17,10 @@ export type Seller = {
   ayapayNumber: string;
   codEnabled: boolean;
   codCities: string[];
+  shopAddress: string;
+  shopLat: number | null;
+  shopLng: number | null;
+  shopMapUrl: string | null;
 };
 
 export type Product = {
@@ -59,6 +63,9 @@ type SellerRow = {
   ayapay_number: string;
   cod_enabled: boolean;
   cod_cities: string[] | null;
+  shop_address: string | null;
+  shop_lat: number | null;
+  shop_lng: number | null;
 };
 
 const toSeller = (row: SellerRow): Seller => ({
@@ -74,10 +81,14 @@ const toSeller = (row: SellerRow): Seller => ({
   ayapayNumber: row.ayapay_number,
   codEnabled: row.cod_enabled,
   codCities: row.cod_cities ?? [],
+  shopAddress: row.shop_address ?? "",
+  shopLat: row.shop_lat,
+  shopLng: row.shop_lng,
+  shopMapUrl: buildMapUrl(row.shop_lat, row.shop_lng),
 });
 
 const SELLER_COLUMNS =
-  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities";
+  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities, shop_address, shop_lat, shop_lng";
 
 const slugify = (value: string): string =>
   value
@@ -454,6 +465,9 @@ const settingsInput = z.object({
   ayapayNumber: z.string().trim().max(40),
   codEnabled: z.boolean(),
   codCities: z.array(z.string().trim().min(1).max(60)).max(60),
+  shopAddress: z.string().trim().max(200),
+  shopLat: z.number().min(-90).max(90).nullable(),
+  shopLng: z.number().min(-180).max(180).nullable(),
 });
 
 export const updateShopSettings = createServerFn({ method: "POST" })
@@ -475,6 +489,9 @@ export const updateShopSettings = createServerFn({ method: "POST" })
         ayapay_number: data.ayapayNumber,
         cod_enabled: data.codEnabled,
         cod_cities: data.codEnabled ? data.codCities : [],
+        shop_address: data.shopAddress,
+        shop_lat: data.shopLat,
+        shop_lng: data.shopLng,
       })
       .eq("user_id", context.userId);
 
