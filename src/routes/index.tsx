@@ -3,7 +3,15 @@ import { BarChart3, Link2, PackageCheck, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getSiteOrigin } from "@/lib/site.functions";
+
+const CARD_DELAYS = [
+  "[animation-delay:320ms]",
+  "[animation-delay:380ms]",
+  "[animation-delay:440ms]",
+  "[animation-delay:500ms]",
+] as const;
 
 
 export const Route = createFileRoute("/")({
@@ -65,31 +73,46 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 py-14">
-        <BrandMark showTagline className="mb-9" />
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+        <BrandMark showTagline size="lg" animated className="mb-9" />
+        <span className="inline-flex animate-fade-in items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary [animation-delay:80ms]">
           For TikTok sellers in Myanmar
         </span>
-        <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+        <h1 className="mt-5 animate-fade-in text-4xl font-extrabold leading-tight tracking-tight [animation-delay:140ms] sm:text-5xl">
           Stop sorting orders in your chat box.
         </h1>
-        <p className="mt-4 text-base text-muted-foreground">
+        <p className="mt-4 animate-fade-in text-base text-muted-foreground [animation-delay:200ms]">
           Maket collects every order from your bio link, keeps the payment screenshot beside the
           delivery address, and gives you a courier sheet in one tap.
         </p>
 
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Button asChild size="lg">
+        <div className="mt-7 flex animate-fade-in flex-wrap gap-3 [animation-delay:260ms]">
+          <Button
+            asChild
+            size="lg"
+            className="transition-transform duration-200 hover:scale-105 active:scale-95"
+          >
             <Link to="/dashboard">Open my dashboard</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="transition-transform duration-200 hover:scale-105 active:scale-95"
+          >
             <Link to="/auth">Create a shop</Link>
           </Button>
         </div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2">
-          {FEATURES.map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-border bg-card p-5">
-              <feature.icon className="size-5 text-primary" />
+          {FEATURES.map((feature, index) => (
+            <div
+              key={feature.title}
+              className={cn(
+                "animate-fade-in rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg",
+                CARD_DELAYS[index],
+              )}
+            >
+              <feature.icon className="size-5 text-primary transition-transform duration-300 group-hover:scale-110" />
               <h2 className="mt-3 text-base font-semibold">{feature.title}</h2>
               <p className="mt-1.5 text-sm text-muted-foreground">{feature.text}</p>
             </div>
@@ -99,3 +122,4 @@ function Landing() {
     </div>
   );
 }
+
