@@ -174,6 +174,51 @@ function SettingsPage() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold">Cash on delivery</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Off means buyers always pay in advance. On lets buyers in the cities you choose pay
+                the delivery person at the door.
+              </p>
+            </div>
+            <Switch
+              checked={codEnabled}
+              onCheckedChange={setCodEnabled}
+              aria-label="Allow cash on delivery"
+            />
+          </div>
+
+          {codEnabled ? (
+            <div className="mt-4">
+              <p className="text-xs font-medium">Cities where pay at door is available</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {MYANMAR_CITIES.map((city) => {
+                  const active = codCities.includes(city);
+                  return (
+                    <Button
+                      key={city}
+                      type="button"
+                      size="sm"
+                      variant={active ? "default" : "outline"}
+                      onClick={() => toggleCity(city)}
+                    >
+                      {city}
+                    </Button>
+                  );
+                })}
+              </div>
+              {codCities.length === 0 ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Pick at least one city, otherwise buyers still pay in advance.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+
+
         <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {busy ? "Saving…" : "Save settings"}
         </Button>
