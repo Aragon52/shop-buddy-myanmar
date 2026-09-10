@@ -1,7 +1,7 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { CheckCircle2, Copy, MapPin, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 
