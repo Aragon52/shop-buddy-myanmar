@@ -416,7 +416,15 @@ function StorePage() {
               {city === OTHER_CITY ? (
                 <div className="space-y-2">
                   <Label htmlFor="otherCity">Your city or township</Label>
-                  <Input id="otherCity" name="otherCity" required maxLength={60} className="h-12" />
+                  <Input
+                    id="otherCity"
+                    name="otherCity"
+                    required
+                    maxLength={60}
+                    className="h-12"
+                    value={otherCity}
+                    onChange={(event) => setOtherCity(event.target.value)}
+                  />
                 </div>
               ) : null}
               <div className="space-y-2">
@@ -430,71 +438,131 @@ function StorePage() {
                   placeholder="House number, street, township, landmark"
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Pin your exact location (optional)</Label>
+                <ClientOnly
+                  fallback={
+                    <div className="h-56 w-full rounded-xl border border-border bg-muted" />
+                  }
+                >
+                  <Suspense
+                    fallback={
+                      <div className="h-56 w-full rounded-xl border border-border bg-muted" />
+                    }
+                  >
+                    <LocationPicker value={pin} onChange={setPin} />
+                  </Suspense>
+                </ClientOnly>
+                <p className="text-xs text-muted-foreground">
+                  Drop a pin so the delivery person finds your door quickly.
+                </p>
+              </div>
             </section>
 
             <section className="space-y-4 rounded-2xl border border-border bg-accent/40 p-4">
-              <h2 className="text-sm font-semibold">Pay {formatMmk(total)}</h2>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => copy(String(total), "Amount")}
-              >
-                <span>{formatMmk(total)}</span>
-                <Copy className="size-4" />
-              </Button>
-              {payments.length === 0 ? (
+              <h2 className="text-sm font-semibold">Payment</h2>
+              {codAllowed ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={effectiveMethod === "prepaid" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setPaymentMethod("prepaid")}
+                  >
+                    Pay now
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={effectiveMethod === "cod" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setPaymentMethod("cod")}
+                  >
+                    Pay at door
+                  </Button>
+                </div>
+              ) : (
                 <p className="text-xs text-muted-foreground">
-                  This shop has not added payment details yet — contact the seller on TikTok.
+                  {store.seller.codEnabled
+                    ? "Pay at door is only available in some cities, so please transfer the payment now."
+                    : "This shop takes payment in advance."}
+                </p>
+              )}
+
+              {effectiveMethod === "cod" ? (
+                <p className="rounded-xl border border-border bg-card p-3 text-sm">
+                  Pay {formatMmk(total)} in cash to the delivery person when your order arrives.
                 </p>
               ) : (
-                <ul className="space-y-3">
-                  {payments.map((method) => (
-                    <li
-                      key={method.label}
-                      className="rounded-xl border border-border bg-card p-3 text-sm"
-                    >
-                      <p className="font-semibold">{method.label}</p>
-                      {method.name ? (
-                        <p className="text-xs text-muted-foreground">{method.name}</p>
-                      ) : null}
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate font-medium">{method.number}</span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => copy(method.number, `${method.label} number`)}
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => copy(String(total), "Amount")}
+                  >
+                    <span>{formatMmk(total)}</span>
+                    <Copy className="size-4" />
+                  </Button>
+                  {payments.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      This shop has not added payment details yet — contact the seller on TikTok.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {payments.map((method) => (
+                        <li
+                          key={method.label}
+                          className="rounded-xl border border-border bg-card p-3 text-sm"
                         >
-                          <Copy className="mr-1 size-3.5" />
-                          Copy
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                          <p className="font-semibold">{method.label}</p>
+                          {method.name ? (
+                            <p className="text-xs text-muted-foreground">{method.name}</p>
+                          ) : null}
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="min-w-0 flex-1 truncate font-medium">
+                              {method.number}
+                            </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => copy(method.number, `${method.label} number`)}
+                            >
+                              <Copy className="mr-1 size-3.5" />
+                              Copy
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="screenshot">Upload payment screenshot</Label>
+                    <Input
+                      id="screenshot"
+                      type="file"
+                      accept="image/*"
+                      required
+                      className="h-12 py-2.5"
+                      onChange={(event) => setScreenshot(event.target.files?.[0] ?? null)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Transfer the exact amount first, then attach your receipt screenshot.
+                    </p>
+                  </div>
+                </>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="screenshot">Upload payment screenshot</Label>
-                <Input
-                  id="screenshot"
-                  type="file"
-                  accept="image/*"
-                  required
-                  className="h-12 py-2.5"
-                  onChange={(event) => setScreenshot(event.target.files?.[0] ?? null)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Transfer the exact amount first, then attach your receipt screenshot.
-                </p>
-              </div>
             </section>
 
             <Button
               type="submit"
               size="lg"
               className="h-14 w-full text-base"
-              disabled={busy || lines.length === 0 || !screenshot}
+              disabled={
+                busy ||
+                lines.length === 0 ||
+                (effectiveMethod === "prepaid" && !screenshot)
+              }
             >
               {busy ? "Sending your order…" : `Place order · ${formatMmk(total)}`}
             </Button>
