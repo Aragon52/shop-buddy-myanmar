@@ -21,8 +21,12 @@ export type Database = {
           created_at: string
           delivery_address: string
           delivery_city: string
+          delivery_lat: number | null
+          delivery_lng: number | null
+          delivery_place_label: string | null
           id: string
           order_status: string
+          payment_method: string
           payment_screenshot_path: string | null
           product_id: string | null
           quantity: number
@@ -36,8 +40,12 @@ export type Database = {
           created_at?: string
           delivery_address: string
           delivery_city: string
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_place_label?: string | null
           id?: string
           order_status?: string
+          payment_method?: string
           payment_screenshot_path?: string | null
           product_id?: string | null
           quantity?: number
@@ -51,8 +59,12 @@ export type Database = {
           created_at?: string
           delivery_address?: string
           delivery_city?: string
+          delivery_lat?: number | null
+          delivery_lng?: number | null
+          delivery_place_label?: string | null
           id?: string
           order_status?: string
+          payment_method?: string
           payment_screenshot_path?: string | null
           product_id?: string | null
           quantity?: number
@@ -155,6 +167,8 @@ export type Database = {
           ayapay_name: string
           ayapay_number: string
           business_name: string
+          cod_cities: string[]
+          cod_enabled: boolean
           created_at: string
           id: string
           kbzpay_name: string
@@ -170,6 +184,8 @@ export type Database = {
           ayapay_name?: string
           ayapay_number?: string
           business_name?: string
+          cod_cities?: string[]
+          cod_enabled?: boolean
           created_at?: string
           id?: string
           kbzpay_name?: string
@@ -185,6 +201,8 @@ export type Database = {
           ayapay_name?: string
           ayapay_number?: string
           business_name?: string
+          cod_cities?: string[]
+          cod_enabled?: boolean
           created_at?: string
           id?: string
           kbzpay_name?: string
