@@ -24,7 +24,7 @@ import {
   saveProduct,
   setProductActive,
   type Product,
-} from "@/lib/bioshop.functions";
+} from "@/lib/maket.functions";
 import { formatMmk, LOW_STOCK_THRESHOLD } from "@/lib/format";
 
 const productsQuery = queryOptions({

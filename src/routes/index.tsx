@@ -1,18 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarChart3, Link2, PackageCheck, ShieldCheck } from "lucide-react";
 
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BioShop — sell from your TikTok bio link" },
+      { title: "Maket — sell from your TikTok bio link" },
       {
         name: "description",
         content:
-          "BioShop turns your TikTok bio link into a checkout page and collects every order in one place, with payment screenshots and delivery sheets.",
+          "Maket turns your TikTok bio link into a checkout page and collects every order in one place, with payment screenshots and delivery sheets.",
       },
-      { property: "og:title", content: "BioShop — sell from your TikTok bio link" },
+      { property: "og:title", content: "Maket — sell from your TikTok bio link" },
       {
         property: "og:description",
         content: "One link in your bio. Every order, payment and delivery sheet in one dashboard.",
@@ -49,6 +50,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 py-14">
+        <BrandMark showTagline className="mb-9" />
         <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
           For TikTok sellers in Myanmar
         </span>
@@ -56,7 +58,7 @@ function Landing() {
           Stop sorting orders in your chat box.
         </h1>
         <p className="mt-4 text-base text-muted-foreground">
-          BioShop collects every order from your bio link, keeps the payment screenshot beside the
+          Maket collects every order from your bio link, keeps the payment screenshot beside the
           delivery address, and gives you a courier sheet in one tap.
         </p>
 

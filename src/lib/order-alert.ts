@@ -32,6 +32,6 @@ export const buildOrderAlertMessage = (input: OrderAlertInput): string => {
     `Phone: ${input.buyerPhone}`,
     `Deliver to: ${input.deliveryCity} — ${input.deliveryAddress}`,
     "",
-    "Status: Pending. Check the payment screenshot in your BioShop orders.",
+    "Status: Pending. Check the payment screenshot in your Maket orders.",
   ].join("\n");
 };

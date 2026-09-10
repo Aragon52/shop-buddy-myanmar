@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +13,13 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in to BioShop" },
+      { title: "Sign in to Maket" },
       {
         name: "description",
-        content: "Sign in or create your BioShop seller account to manage orders and stock.",
+        content: "Sign in or create your Maket seller account to manage orders and stock.",
       },
-      { property: "og:title", content: "Sign in to BioShop" },
-      { property: "og:description", content: "Manage your social commerce orders with BioShop." },
+      { property: "og:title", content: "Sign in to Maket" },
+      { property: "og:description", content: "Manage your social commerce orders with Maket." },
     ],
   }),
   component: AuthPage,
@@ -82,13 +83,14 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-5 py-10">
       <div className="w-full max-w-sm">
+        <BrandMark showTagline className="mb-7" />
         <h1 className="text-2xl font-extrabold tracking-tight">
           {mode === "signin" ? "Welcome back" : "Create your shop"}
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {mode === "signin"
             ? "Sign in to manage your orders and stock."
-            : "Set up a BioShop account in a few seconds."}
+            : "Set up a Maket account in a few seconds."}
         </p>
 
         {checkEmail ? (

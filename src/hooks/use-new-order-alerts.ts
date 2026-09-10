@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-import { getOrderPulse } from "@/lib/bioshop.functions";
+import { getOrderPulse } from "@/lib/maket.functions";
 
 const playChime = (): void => {
   try {

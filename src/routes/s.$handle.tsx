@@ -18,7 +18,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { getPublicStore, placeCartOrder } from "@/lib/bioshop.functions";
+import { getPublicStore, placeCartOrder } from "@/lib/maket.functions";
 import { formatMmk, MYANMAR_CITIES } from "@/lib/format";
 
 const storeQuery = (handle: string) =>
@@ -46,12 +46,12 @@ export const Route = createFileRoute("/s/$handle")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        { property: "og:site_name", content: "BioShop" },
+        { property: "og:site_name", content: "Maket" },
         ...(loaderData.storeUrl ? [{ property: "og:url", content: loaderData.storeUrl }] : []),
         ...(loaderData.ogImageUrl
           ? [
               { property: "og:image", content: loaderData.ogImageUrl },
-              { property: "og:image:alt", content: `${loaderData.seller.businessName} on BioShop` },
+              { property: "og:image:alt", content: `${loaderData.seller.businessName} on Maket` },
               { name: "twitter:image", content: loaderData.ogImageUrl },
             ]
           : []),

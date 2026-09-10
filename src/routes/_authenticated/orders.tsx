@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { listOrders, updateOrderStatus, type Order } from "@/lib/bioshop.functions";
+import { listOrders, updateOrderStatus, type Order } from "@/lib/maket.functions";
 import { formatDateTime, formatMmk, ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/format";
 
 const ordersQuery = queryOptions({
@@ -62,7 +62,7 @@ function exportCsv(orders: Order[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `bioshop-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `maket-orders-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }

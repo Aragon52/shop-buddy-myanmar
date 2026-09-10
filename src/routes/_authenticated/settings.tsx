@@ -16,7 +16,7 @@ import {
   saveAlertSettings,
   sendTestAlert,
   updateShopSettings,
-} from "@/lib/bioshop.functions";
+} from "@/lib/maket.functions";
 
 const alertsQuery = queryOptions({
   queryKey: ["alert-settings"],
