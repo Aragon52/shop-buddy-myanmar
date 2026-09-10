@@ -94,6 +94,9 @@ function SettingsPage() {
           ayapayNumber: value("ayapayNumber"),
           codEnabled,
           codCities,
+          shopAddress: value("shopAddress"),
+          shopLat: shopPin?.lat ?? null,
+          shopLng: shopPin?.lng ?? null,
         },
       });
       toast.success("Shop settings saved.");
@@ -142,6 +145,39 @@ function SettingsPage() {
             />
           </div>
         </section>
+
+        <section className="rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-sm font-semibold">Business location</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Show buyers where your shop really operates from. It builds trust that the shop in your
+            TikTok videos is the same one taking their money.
+          </p>
+          <div className="mt-3 space-y-4">
+            <Field
+              id="shopAddress"
+              label="Shop address"
+              defaultValue={seller.shopAddress}
+              maxLength={200}
+              placeholder="Shop or building, street, township, city"
+            />
+            <div className="space-y-2">
+              <Label>Pin your shop on the map</Label>
+              <ClientOnly
+                fallback={<div className="h-56 w-full rounded-xl border border-border bg-muted" />}
+              >
+                <Suspense
+                  fallback={<div className="h-56 w-full rounded-xl border border-border bg-muted" />}
+                >
+                  <LocationPicker value={shopPin} onChange={setShopPin} />
+                </Suspense>
+              </ClientOnly>
+              <p className="text-xs text-muted-foreground">
+                Stand at your shop and tap "Use my location", or drag the pin to the right spot.
+              </p>
+            </div>
+          </div>
+        </section>
+
 
         <section className="rounded-2xl border border-border bg-card p-4">
           <h2 className="text-sm font-semibold">Payment collection</h2>
