@@ -62,7 +62,7 @@ function exportCsv(orders: Order[]) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `bioshop-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `maket-orders-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 }
