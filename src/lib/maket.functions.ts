@@ -509,8 +509,8 @@ export const updateShopSettings = createServerFn({ method: "POST" })
 export const getPublicStore = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ handle: z.string().trim().max(40) }).parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: seller } = await supabase
       .from("sellers")
@@ -574,8 +574,8 @@ const checkoutInput = z.object({
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => checkoutInput.parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: product } = await supabase
       .from("products")
@@ -630,8 +630,8 @@ const cartCheckoutInput = z.object({
 export const placeCartOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => cartCheckoutInput.parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: seller } = await supabase
       .from("sellers")

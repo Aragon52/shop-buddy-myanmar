@@ -18,8 +18,8 @@ export const Route = createFileRoute("/api/public/og/$handle")({
         if (!parsed.success) return Response.redirect(fallback, 302);
 
         try {
-          const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-          const supabase = createPublicSupabaseClient();
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const supabase = supabaseAdmin;
 
           const { data: seller } = await supabase
             .from("sellers")
