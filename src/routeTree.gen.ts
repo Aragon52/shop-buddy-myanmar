@@ -17,6 +17,7 @@ import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as SHandleRouteImport } from './routes/s.$handle'
+import { Route as StoreHandleRouteImport } from './routes/store.$handle'
 import { Route as ApiPublicOgHandleRouteImport } from './routes/api/public/og/$handle'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +59,11 @@ const SHandleRoute = SHandleRouteImport.update({
   path: '/s/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoreHandleRoute = StoreHandleRouteImport.update({
+  id: '/store/$handle',
+  path: '/store/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOgHandleRoute = ApiPublicOgHandleRouteImport.update({
   id: '/api/public/og/$handle',
   path: '/api/public/og/$handle',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AuthenticatedProductsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/s/$handle': typeof SHandleRoute
+  '/store/$handle': typeof StoreHandleRoute
   '/api/public/og/$handle': typeof ApiPublicOgHandleRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/products': typeof AuthenticatedProductsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/s/$handle': typeof SHandleRoute
+  '/store/$handle': typeof StoreHandleRoute
   '/api/public/og/$handle': typeof ApiPublicOgHandleRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/s/$handle': typeof SHandleRoute
+  '/store/$handle': typeof StoreHandleRoute
   '/api/public/og/$handle': typeof ApiPublicOgHandleRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/s/$handle'
+    | '/store/$handle'
     | '/api/public/og/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/s/$handle'
+    | '/store/$handle'
     | '/api/public/og/$handle'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_authenticated/products'
     | '/_authenticated/settings'
     | '/s/$handle'
+    | '/store/$handle'
     | '/api/public/og/$handle'
   fileRoutesById: FileRoutesById
 }
@@ -135,6 +147,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SHandleRoute: typeof SHandleRoute
+  StoreHandleRoute: typeof StoreHandleRoute
   ApiPublicOgHandleRoute: typeof ApiPublicOgHandleRoute
 }
 
@@ -196,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/store/$handle': {
+      id: '/store/$handle'
+      path: '/store/$handle'
+      fullPath: '/store/$handle'
+      preLoaderRoute: typeof StoreHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/og/$handle': {
       id: '/api/public/og/$handle'
       path: '/api/public/og/$handle'
@@ -228,6 +248,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SHandleRoute: SHandleRoute,
+  StoreHandleRoute: StoreHandleRoute,
   ApiPublicOgHandleRoute: ApiPublicOgHandleRoute,
 }
 export const routeTree = rootRouteImport
