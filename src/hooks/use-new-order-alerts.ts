@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
+import { supabase } from "@/integrations/supabase/client";
 import { getOrderPulse } from "@/lib/maket.functions";
 
 const playChime = (): void => {
@@ -59,4 +60,38 @@ export function useNewOrderAlerts(): void {
     void queryClient.invalidateQueries({ queryKey: ["orders"] });
     void queryClient.invalidateQueries({ queryKey: ["shop-overview"] });
   }, [data, queryClient]);
+
+  // Instant push from the database whenever a buyer creates an order.
+  useEffect(() => {
+    const channel = supabase
+      .channel("seller-orders")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          const row = payload.new as { id?: string; buyer_name?: string } | null;
+          if (!row?.id || row.id === lastSeenRef.current) return;
+          lastSeenRef.current = row.id;
+          initialisedRef.current = true;
+
+          playChime();
+          toast.success("New order received", {
+            description: row.buyer_name ? `From ${row.buyer_name} — waiting for review.` : undefined,
+            duration: 8000,
+          });
+          void queryClient.invalidateQueries({ queryKey: ["orders"] });
+          void queryClient.invalidateQueries({ queryKey: ["shop-overview"] });
+          void queryClient.invalidateQueries({ queryKey: ["order-pulse"] });
+        },
+      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, () => {
+        void queryClient.invalidateQueries({ queryKey: ["orders"] });
+        void queryClient.invalidateQueries({ queryKey: ["shop-overview"] });
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 }
