@@ -12,6 +12,8 @@ export type OrderAlertInput = {
   buyerPhone: string;
   deliveryCity: string;
   deliveryAddress: string;
+  paymentMethod?: "prepaid" | "cod";
+  mapUrl?: string | null;
   items: OrderAlertItem[];
   total: number;
 };
@@ -22,16 +24,22 @@ export const buildOrderAlertMessage = (input: OrderAlertInput): string => {
     (item) => `• ${item.name} × ${item.quantity} — ${formatMmk(item.totalMmk)}`,
   );
 
+  const isCod = input.paymentMethod === "cod";
+
   return [
     `🛍️ New order — ${input.shopName}`,
     "",
     ...lines,
     "",
     `Total: ${formatMmk(input.total)}`,
+    `Payment: ${isCod ? "Cash on delivery" : "Paid in advance"}`,
     `Buyer: ${input.buyerName}`,
     `Phone: ${input.buyerPhone}`,
     `Deliver to: ${input.deliveryCity} — ${input.deliveryAddress}`,
+    ...(input.mapUrl ? [`Map: ${input.mapUrl}`] : []),
     "",
-    "Status: Pending. Check the payment screenshot in your Maket orders.",
+    isCod
+      ? "Status: Pending. Collect the payment at the door."
+      : "Status: Pending. Check the payment screenshot in your Maket orders.",
   ].join("\n");
 };

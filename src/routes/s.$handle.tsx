@@ -1,10 +1,11 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import type { PickedLocation } from "@/components/location-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicStore, placeCartOrder } from "@/lib/maket.functions";
 import { formatMmk, MYANMAR_CITIES } from "@/lib/format";
+
+const LocationPicker = lazy(() =>
+  import("@/components/location-picker").then((module) => ({ default: module.LocationPicker })),
+);
 
 const storeQuery = (handle: string) =>
   queryOptions({
@@ -75,6 +80,7 @@ export const Route = createFileRoute("/s/$handle")({
 type SuccessOrder = {
   items: Array<{ name: string; quantity: number; totalMmk: number }>;
   total: number;
+  paymentMethod: "prepaid" | "cod";
 };
 
 const OTHER_CITY = "__other__";
@@ -87,6 +93,9 @@ function StorePage() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [step, setStep] = useState<"browse" | "checkout">("browse");
   const [city, setCity] = useState<string>("");
+  const [otherCity, setOtherCity] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"prepaid" | "cod">("prepaid");
+  const [pin, setPin] = useState<PickedLocation | null>(null);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<SuccessOrder | null>(null);
@@ -117,6 +126,14 @@ function StorePage() {
     { label: "AYA Pay", name: store.seller.ayapayName, number: store.seller.ayapayNumber },
   ].filter((method) => method.number.length > 0);
 
+  const chosenCity = city === OTHER_CITY ? otherCity.trim() : city;
+  const codCities = store.seller.codCities ?? [];
+  const codAllowed =
+    store.seller.codEnabled &&
+    chosenCity.length > 0 &&
+    codCities.some((allowed) => allowed.toLowerCase() === chosenCity.toLowerCase());
+  const effectiveMethod: "prepaid" | "cod" = codAllowed ? paymentMethod : "prepaid";
+
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -138,6 +155,9 @@ function StorePage() {
   const resetAll = () => {
     setCart({});
     setCity("");
+    setOtherCity("");
+    setPaymentMethod("prepaid");
+    setPin(null);
     setScreenshot(null);
     setStep("browse");
   };
@@ -145,14 +165,13 @@ function StorePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (lines.length === 0) return;
-    if (!screenshot) {
+    if (effectiveMethod === "prepaid" && !screenshot) {
       toast.error("Please attach your payment screenshot.");
       return;
     }
 
     const form = new FormData(event.currentTarget);
     const value = (field: string) => String(form.get(field) ?? "").trim();
-    const chosenCity = city === OTHER_CITY ? value("otherCity") : city;
     if (!chosenCity) {
       toast.error("Please choose your city or township.");
       return;
@@ -160,10 +179,15 @@ function StorePage() {
 
     setBusy(true);
     try {
-      const extension = screenshot.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${store.seller.id}/${crypto.randomUUID()}.${extension}`;
-      const { error } = await supabase.storage.from("payment-screenshots").upload(path, screenshot);
-      if (error) throw new Error(error.message);
+      let path: string | null = null;
+      if (effectiveMethod === "prepaid" && screenshot) {
+        const extension = screenshot.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        path = `${store.seller.id}/${crypto.randomUUID()}.${extension}`;
+        const { error } = await supabase.storage
+          .from("payment-screenshots")
+          .upload(path, screenshot);
+        if (error) throw new Error(error.message);
+      }
 
       const result = await submitOrder({
         data: {
@@ -173,11 +197,15 @@ function StorePage() {
           buyerPhone: value("buyerPhone"),
           deliveryCity: chosenCity,
           deliveryAddress: value("deliveryAddress"),
+          paymentMethod: effectiveMethod,
           screenshotPath: path,
+          deliveryLat: pin?.lat ?? null,
+          deliveryLng: pin?.lng ?? null,
+          deliveryPlaceLabel: null,
         },
       });
 
-      setDone({ items: result.items, total: result.total });
+      setDone({ items: result.items, total: result.total, paymentMethod: effectiveMethod });
       resetAll();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not send your order.");
@@ -193,7 +221,9 @@ function StorePage() {
           <CheckCircle2 className="mx-auto size-12 text-success" />
           <h1 className="mt-4 text-xl font-bold">Order received</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Thank you for your order! The seller will verify your payment and contact you shortly.
+            {done.paymentMethod === "cod"
+              ? "Thank you for your order! Pay the delivery person at your door. The seller will contact you shortly."
+              : "Thank you for your order! The seller will verify your payment and contact you shortly."}
           </p>
           <ul className="mt-5 space-y-2 text-left text-sm">
             {done.items.map((item) => (
@@ -386,7 +416,15 @@ function StorePage() {
               {city === OTHER_CITY ? (
                 <div className="space-y-2">
                   <Label htmlFor="otherCity">Your city or township</Label>
-                  <Input id="otherCity" name="otherCity" required maxLength={60} className="h-12" />
+                  <Input
+                    id="otherCity"
+                    name="otherCity"
+                    required
+                    maxLength={60}
+                    className="h-12"
+                    value={otherCity}
+                    onChange={(event) => setOtherCity(event.target.value)}
+                  />
                 </div>
               ) : null}
               <div className="space-y-2">
@@ -400,71 +438,131 @@ function StorePage() {
                   placeholder="House number, street, township, landmark"
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Pin your exact location (optional)</Label>
+                <ClientOnly
+                  fallback={
+                    <div className="h-56 w-full rounded-xl border border-border bg-muted" />
+                  }
+                >
+                  <Suspense
+                    fallback={
+                      <div className="h-56 w-full rounded-xl border border-border bg-muted" />
+                    }
+                  >
+                    <LocationPicker value={pin} onChange={setPin} />
+                  </Suspense>
+                </ClientOnly>
+                <p className="text-xs text-muted-foreground">
+                  Drop a pin so the delivery person finds your door quickly.
+                </p>
+              </div>
             </section>
 
             <section className="space-y-4 rounded-2xl border border-border bg-accent/40 p-4">
-              <h2 className="text-sm font-semibold">Pay {formatMmk(total)}</h2>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => copy(String(total), "Amount")}
-              >
-                <span>{formatMmk(total)}</span>
-                <Copy className="size-4" />
-              </Button>
-              {payments.length === 0 ? (
+              <h2 className="text-sm font-semibold">Payment</h2>
+              {codAllowed ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={effectiveMethod === "prepaid" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setPaymentMethod("prepaid")}
+                  >
+                    Pay now
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={effectiveMethod === "cod" ? "default" : "outline"}
+                    className="h-12"
+                    onClick={() => setPaymentMethod("cod")}
+                  >
+                    Pay at door
+                  </Button>
+                </div>
+              ) : (
                 <p className="text-xs text-muted-foreground">
-                  This shop has not added payment details yet — contact the seller on TikTok.
+                  {store.seller.codEnabled
+                    ? "Pay at door is only available in some cities, so please transfer the payment now."
+                    : "This shop takes payment in advance."}
+                </p>
+              )}
+
+              {effectiveMethod === "cod" ? (
+                <p className="rounded-xl border border-border bg-card p-3 text-sm">
+                  Pay {formatMmk(total)} in cash to the delivery person when your order arrives.
                 </p>
               ) : (
-                <ul className="space-y-3">
-                  {payments.map((method) => (
-                    <li
-                      key={method.label}
-                      className="rounded-xl border border-border bg-card p-3 text-sm"
-                    >
-                      <p className="font-semibold">{method.label}</p>
-                      {method.name ? (
-                        <p className="text-xs text-muted-foreground">{method.name}</p>
-                      ) : null}
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate font-medium">{method.number}</span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => copy(method.number, `${method.label} number`)}
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => copy(String(total), "Amount")}
+                  >
+                    <span>{formatMmk(total)}</span>
+                    <Copy className="size-4" />
+                  </Button>
+                  {payments.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      This shop has not added payment details yet — contact the seller on TikTok.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {payments.map((method) => (
+                        <li
+                          key={method.label}
+                          className="rounded-xl border border-border bg-card p-3 text-sm"
                         >
-                          <Copy className="mr-1 size-3.5" />
-                          Copy
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                          <p className="font-semibold">{method.label}</p>
+                          {method.name ? (
+                            <p className="text-xs text-muted-foreground">{method.name}</p>
+                          ) : null}
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="min-w-0 flex-1 truncate font-medium">
+                              {method.number}
+                            </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => copy(method.number, `${method.label} number`)}
+                            >
+                              <Copy className="mr-1 size-3.5" />
+                              Copy
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="screenshot">Upload payment screenshot</Label>
+                    <Input
+                      id="screenshot"
+                      type="file"
+                      accept="image/*"
+                      required
+                      className="h-12 py-2.5"
+                      onChange={(event) => setScreenshot(event.target.files?.[0] ?? null)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Transfer the exact amount first, then attach your receipt screenshot.
+                    </p>
+                  </div>
+                </>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="screenshot">Upload payment screenshot</Label>
-                <Input
-                  id="screenshot"
-                  type="file"
-                  accept="image/*"
-                  required
-                  className="h-12 py-2.5"
-                  onChange={(event) => setScreenshot(event.target.files?.[0] ?? null)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Transfer the exact amount first, then attach your receipt screenshot.
-                </p>
-              </div>
             </section>
 
             <Button
               type="submit"
               size="lg"
               className="h-14 w-full text-base"
-              disabled={busy || lines.length === 0 || !screenshot}
+              disabled={
+                busy ||
+                lines.length === 0 ||
+                (effectiveMethod === "prepaid" && !screenshot)
+              }
             >
               {busy ? "Sending your order…" : `Place order · ${formatMmk(total)}`}
             </Button>

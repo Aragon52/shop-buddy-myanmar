@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Phone, ZoomIn } from "lucide-react";
+import { Download, MapPin, Phone, ZoomIn } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +40,8 @@ function exportCsv(orders: Order[]) {
     "Phone",
     "City",
     "Address",
+    "Map link",
+    "Payment",
     "Product",
     "Quantity",
     "Total (MMK)",
@@ -51,6 +53,8 @@ function exportCsv(orders: Order[]) {
     order.buyerPhone,
     order.deliveryCity,
     order.deliveryAddress,
+    order.mapUrl ?? "",
+    order.paymentMethod === "cod" ? "Cash on delivery" : "Paid in advance",
     order.productName,
     order.quantity,
     order.totalMmk,
@@ -170,7 +174,28 @@ function OrdersPage() {
                   <Row label="Total" value={formatMmk(selected.totalMmk)} />
                   <Row label="City" value={selected.deliveryCity} />
                   <Row label="Address" value={selected.deliveryAddress} />
+                  <Row
+                    label="Payment"
+                    value={
+                      selected.paymentMethod === "cod"
+                        ? "Cash on delivery"
+                        : "Paid in advance"
+                    }
+                  />
                   <Row label="Ordered" value={formatDateTime(selected.createdAt)} />
+                  {selected.mapUrl ? (
+                    <div className="mt-3">
+                      <a
+                        href={selected.mapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-primary"
+                      >
+                        <MapPin className="size-4" />
+                        Open pinned location
+                      </a>
+                    </div>
+                  ) : null}
                   <div className="mt-3">
                     <a
                       href={`tel:${selected.buyerPhone.replace(/\s/g, "")}`}
@@ -201,7 +226,9 @@ function OrdersPage() {
                     </button>
                   ) : (
                     <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                      The buyer did not attach a screenshot.
+                      {selected.paymentMethod === "cod"
+                        ? "Cash on delivery — collect the payment at the door."
+                        : "The buyer did not attach a screenshot."}
                     </p>
                   )}
                 </div>

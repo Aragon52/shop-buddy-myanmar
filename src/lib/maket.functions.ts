@@ -15,6 +15,8 @@ export type Seller = {
   wavepayNumber: string;
   ayapayName: string;
   ayapayNumber: string;
+  codEnabled: boolean;
+  codCities: string[];
 };
 
 export type Product = {
@@ -38,6 +40,8 @@ export type Order = {
   totalMmk: number;
   productName: string;
   status: string;
+  paymentMethod: string;
+  mapUrl: string | null;
   screenshotUrl: string | null;
   createdAt: string;
 };
@@ -53,6 +57,8 @@ type SellerRow = {
   wavepay_number: string;
   ayapay_name: string;
   ayapay_number: string;
+  cod_enabled: boolean;
+  cod_cities: string[] | null;
 };
 
 const toSeller = (row: SellerRow): Seller => ({
@@ -66,10 +72,12 @@ const toSeller = (row: SellerRow): Seller => ({
   wavepayNumber: row.wavepay_number,
   ayapayName: row.ayapay_name,
   ayapayNumber: row.ayapay_number,
+  codEnabled: row.cod_enabled,
+  codCities: row.cod_cities ?? [],
 });
 
 const SELLER_COLUMNS =
-  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number";
+  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities";
 
 const slugify = (value: string): string =>
   value
@@ -110,6 +118,10 @@ const signedUrl = async (
   const { data } = await client.storage.from(bucket).createSignedUrl(path, 60 * 60);
   return data?.signedUrl ?? null;
 };
+
+/** Builds a Google Maps link for a pinned delivery location. */
+const buildMapUrl = (lat: number | null, lng: number | null): string | null =>
+  lat === null || lng === null ? null : `https://www.google.com/maps?q=${lat},${lng}`;
 
 /** Loads the signed-in seller's shop, creating it with sample data on first visit. */
 const loadOrCreateSeller = async (
@@ -263,7 +275,7 @@ export const listOrders = createServerFn({ method: "GET" })
     const { data } = await client
       .from("orders")
       .select(
-        "id, buyer_name, buyer_phone, delivery_city, delivery_address, quantity, unit_price_mmk, payment_screenshot_path, order_status, created_at, products(name)",
+        "id, buyer_name, buyer_phone, delivery_city, delivery_address, quantity, unit_price_mmk, payment_screenshot_path, payment_method, delivery_lat, delivery_lng, order_status, created_at, products(name)",
       )
       .eq("seller_id", sellerId)
       .order("created_at", { ascending: false });
@@ -277,6 +289,9 @@ export const listOrders = createServerFn({ method: "GET" })
       quantity: number;
       unit_price_mmk: number;
       payment_screenshot_path: string | null;
+      payment_method: string | null;
+      delivery_lat: number | null;
+      delivery_lng: number | null;
       order_status: string;
       created_at: string;
       products: { name: string } | null;
@@ -296,6 +311,8 @@ export const listOrders = createServerFn({ method: "GET" })
         totalMmk: row.quantity * row.unit_price_mmk,
         productName: row.products?.name ?? "Deleted product",
         status: row.order_status,
+        paymentMethod: row.payment_method ?? "prepaid",
+        mapUrl: buildMapUrl(row.delivery_lat, row.delivery_lng),
         screenshotUrl: await signedUrl(client, "payment-screenshots", row.payment_screenshot_path),
         createdAt: row.created_at,
       })),
@@ -435,6 +452,8 @@ const settingsInput = z.object({
   wavepayNumber: z.string().trim().max(40),
   ayapayName: z.string().trim().max(80),
   ayapayNumber: z.string().trim().max(40),
+  codEnabled: z.boolean(),
+  codCities: z.array(z.string().trim().min(1).max(60)).max(60),
 });
 
 export const updateShopSettings = createServerFn({ method: "POST" })
@@ -454,6 +473,8 @@ export const updateShopSettings = createServerFn({ method: "POST" })
         wavepay_number: data.wavepayNumber,
         ayapay_name: data.ayapayName,
         ayapay_number: data.ayapayNumber,
+        cod_enabled: data.codEnabled,
+        cod_cities: data.codEnabled ? data.codCities : [],
       })
       .eq("user_id", context.userId);
 
@@ -581,7 +602,11 @@ const cartCheckoutInput = z.object({
   buyerPhone: z.string().trim().min(5).max(40),
   deliveryCity: z.string().trim().min(1).max(60),
   deliveryAddress: z.string().trim().min(5).max(400),
-  screenshotPath: z.string().trim().min(1, "Payment screenshot is required").max(400),
+  paymentMethod: z.enum(["prepaid", "cod"]),
+  screenshotPath: z.string().trim().max(400).nullable(),
+  deliveryLat: z.number().min(-90).max(90).nullable(),
+  deliveryLng: z.number().min(-180).max(180).nullable(),
+  deliveryPlaceLabel: z.string().trim().max(300).nullable(),
 });
 
 /** Places a multi-item buyer order — one pending row per cart line. */
@@ -590,6 +615,26 @@ export const placeCartOrder = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
     const supabase = createPublicSupabaseClient();
+
+    const { data: seller } = await supabase
+      .from("sellers")
+      .select("cod_enabled, cod_cities")
+      .eq("id", data.sellerId)
+      .maybeSingle();
+
+    if (!seller) throw new Error("This shop is no longer available.");
+
+    const codCities = (seller.cod_cities ?? []) as string[];
+    const codAllowed =
+      seller.cod_enabled === true &&
+      codCities.some((city) => city.toLowerCase() === data.deliveryCity.toLowerCase());
+
+    if (data.paymentMethod === "cod" && !codAllowed) {
+      throw new Error("Cash on delivery is not available for this city, please pay in advance.");
+    }
+    if (data.paymentMethod === "prepaid" && !data.screenshotPath) {
+      throw new Error("Please attach your payment screenshot.");
+    }
 
     const { data: products } = await supabase
       .from("products")
@@ -625,7 +670,11 @@ export const placeCartOrder = createServerFn({ method: "POST" })
         delivery_address: data.deliveryAddress,
         quantity: line.quantity,
         unit_price_mmk: line.unitPriceMmk,
-        payment_screenshot_path: data.screenshotPath,
+        payment_method: data.paymentMethod,
+        payment_screenshot_path: data.paymentMethod === "cod" ? null : data.screenshotPath,
+        delivery_lat: data.deliveryLat,
+        delivery_lng: data.deliveryLng,
+        delivery_place_label: data.deliveryPlaceLabel,
         order_status: "pending",
       })),
     );
@@ -638,6 +687,8 @@ export const placeCartOrder = createServerFn({ method: "POST" })
       buyerPhone: data.buyerPhone,
       deliveryCity: data.deliveryCity,
       deliveryAddress: data.deliveryAddress,
+      paymentMethod: data.paymentMethod,
+      mapUrl: buildMapUrl(data.deliveryLat, data.deliveryLng),
       items: lines.map((line) => ({
         name: line.name,
         quantity: line.quantity,
@@ -648,6 +699,7 @@ export const placeCartOrder = createServerFn({ method: "POST" })
 
     return {
       ok: true,
+      paymentMethod: data.paymentMethod,
       items: lines.map((line) => ({
         name: line.name,
         quantity: line.quantity,
@@ -663,6 +715,8 @@ type NotifyInput = {
   buyerPhone: string;
   deliveryCity: string;
   deliveryAddress: string;
+  paymentMethod: "prepaid" | "cod";
+  mapUrl: string | null;
   items: { name: string; quantity: number; totalMmk: number }[];
   total: number;
 };
@@ -695,6 +749,8 @@ const notifySellerOfOrder = async (input: NotifyInput): Promise<void> => {
         buyerPhone: input.buyerPhone,
         deliveryCity: input.deliveryCity,
         deliveryAddress: input.deliveryAddress,
+        paymentMethod: input.paymentMethod,
+        mapUrl: input.mapUrl,
         items: input.items,
         total: input.total,
       }),
