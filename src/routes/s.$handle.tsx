@@ -1,10 +1,11 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import type { PickedLocation } from "@/components/location-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicStore, placeCartOrder } from "@/lib/maket.functions";
 import { formatMmk, MYANMAR_CITIES } from "@/lib/format";
+
+const LocationPicker = lazy(() =>
+  import("@/components/location-picker").then((module) => ({ default: module.LocationPicker })),
+);
 
 const storeQuery = (handle: string) =>
   queryOptions({
