@@ -715,6 +715,8 @@ type NotifyInput = {
   buyerPhone: string;
   deliveryCity: string;
   deliveryAddress: string;
+  paymentMethod: "prepaid" | "cod";
+  mapUrl: string | null;
   items: { name: string; quantity: number; totalMmk: number }[];
   total: number;
 };
