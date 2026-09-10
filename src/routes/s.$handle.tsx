@@ -80,6 +80,7 @@ export const Route = createFileRoute("/s/$handle")({
 type SuccessOrder = {
   items: Array<{ name: string; quantity: number; totalMmk: number }>;
   total: number;
+  paymentMethod: "prepaid" | "cod";
 };
 
 const OTHER_CITY = "__other__";
@@ -92,6 +93,9 @@ function StorePage() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [step, setStep] = useState<"browse" | "checkout">("browse");
   const [city, setCity] = useState<string>("");
+  const [otherCity, setOtherCity] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"prepaid" | "cod">("prepaid");
+  const [pin, setPin] = useState<PickedLocation | null>(null);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<SuccessOrder | null>(null);
