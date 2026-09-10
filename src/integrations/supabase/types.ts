@@ -174,6 +174,9 @@ export type Database = {
           kbzpay_name: string
           kbzpay_number: string
           phone: string
+          shop_address: string
+          shop_lat: number | null
+          shop_lng: number | null
           tiktok_handle: string
           updated_at: string
           user_id: string
@@ -191,6 +194,9 @@ export type Database = {
           kbzpay_name?: string
           kbzpay_number?: string
           phone?: string
+          shop_address?: string
+          shop_lat?: number | null
+          shop_lng?: number | null
           tiktok_handle: string
           updated_at?: string
           user_id: string
@@ -208,6 +214,9 @@ export type Database = {
           kbzpay_name?: string
           kbzpay_number?: string
           phone?: string
+          shop_address?: string
+          shop_lat?: number | null
+          shop_lng?: number | null
           tiktok_handle?: string
           updated_at?: string
           user_id?: string
