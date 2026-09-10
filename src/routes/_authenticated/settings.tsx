@@ -22,6 +22,11 @@ import {
   updateShopSettings,
 } from "@/lib/maket.functions";
 
+const LocationPicker = lazy(() =>
+  import("@/components/location-picker").then((module) => ({ default: module.LocationPicker })),
+);
+
+
 const alertsQuery = queryOptions({
   queryKey: ["alert-settings"],
   queryFn: () => getAlertSettings(),
@@ -57,6 +62,11 @@ function SettingsPage() {
   const seller = data.seller;
   const [codEnabled, setCodEnabled] = useState(seller.codEnabled);
   const [codCities, setCodCities] = useState<string[]>(seller.codCities);
+  const [shopPin, setShopPin] = useState<PickedLocation | null>(
+    seller.shopLat !== null && seller.shopLng !== null
+      ? { lat: seller.shopLat, lng: seller.shopLng }
+      : null,
+  );
 
   const toggleCity = (city: string) => {
     setCodCities((current) =>
