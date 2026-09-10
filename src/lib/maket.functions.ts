@@ -15,6 +15,8 @@ export type Seller = {
   wavepayNumber: string;
   ayapayName: string;
   ayapayNumber: string;
+  codEnabled: boolean;
+  codCities: string[];
 };
 
 export type Product = {
@@ -38,6 +40,8 @@ export type Order = {
   totalMmk: number;
   productName: string;
   status: string;
+  paymentMethod: string;
+  mapUrl: string | null;
   screenshotUrl: string | null;
   createdAt: string;
 };
@@ -53,6 +57,8 @@ type SellerRow = {
   wavepay_number: string;
   ayapay_name: string;
   ayapay_number: string;
+  cod_enabled: boolean;
+  cod_cities: string[] | null;
 };
 
 const toSeller = (row: SellerRow): Seller => ({
@@ -66,10 +72,12 @@ const toSeller = (row: SellerRow): Seller => ({
   wavepayNumber: row.wavepay_number,
   ayapayName: row.ayapay_name,
   ayapayNumber: row.ayapay_number,
+  codEnabled: row.cod_enabled,
+  codCities: row.cod_cities ?? [],
 });
 
 const SELLER_COLUMNS =
-  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number";
+  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities";
 
 const slugify = (value: string): string =>
   value
