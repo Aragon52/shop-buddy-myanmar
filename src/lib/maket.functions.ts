@@ -63,6 +63,9 @@ type SellerRow = {
   ayapay_number: string;
   cod_enabled: boolean;
   cod_cities: string[] | null;
+  shop_address: string | null;
+  shop_lat: number | null;
+  shop_lng: number | null;
 };
 
 const toSeller = (row: SellerRow): Seller => ({
@@ -78,10 +81,14 @@ const toSeller = (row: SellerRow): Seller => ({
   ayapayNumber: row.ayapay_number,
   codEnabled: row.cod_enabled,
   codCities: row.cod_cities ?? [],
+  shopAddress: row.shop_address ?? "",
+  shopLat: row.shop_lat,
+  shopLng: row.shop_lng,
+  shopMapUrl: buildMapUrl(row.shop_lat, row.shop_lng),
 });
 
 const SELLER_COLUMNS =
-  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities";
+  "id, business_name, phone, tiktok_handle, kbzpay_name, kbzpay_number, wavepay_name, wavepay_number, ayapay_name, ayapay_number, cod_enabled, cod_cities, shop_address, shop_lat, shop_lng";
 
 const slugify = (value: string): string =>
   value
