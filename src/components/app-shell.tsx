@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Home, Package, Settings, ShoppingBag } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useNewOrderAlerts } from "@/hooks/use-new-order-alerts";
+
 const TABS = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/orders", label: "Orders", icon: ShoppingBag },
@@ -20,6 +22,8 @@ export function AppShell({
   action?: ReactNode;
   children: ReactNode;
 }) {
+  useNewOrderAlerts();
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">

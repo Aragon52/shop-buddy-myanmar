@@ -46,7 +46,16 @@ export const Route = createFileRoute("/s/$handle")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
+        { property: "og:site_name", content: "BioShop" },
+        ...(loaderData.storeUrl ? [{ property: "og:url", content: loaderData.storeUrl }] : []),
+        ...(loaderData.ogImageUrl
+          ? [
+              { property: "og:image", content: loaderData.ogImageUrl },
+              { property: "og:image:alt", content: `${loaderData.seller.businessName} on BioShop` },
+              { name: "twitter:image", content: loaderData.ogImageUrl },
+            ]
+          : []),
+        { name: "twitter:card", content: "summary_large_image" },
       ],
     };
   },
