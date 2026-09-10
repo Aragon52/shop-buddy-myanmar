@@ -51,6 +51,14 @@ function SettingsPage() {
   const save = useServerFn(updateShopSettings);
   const [busy, setBusy] = useState(false);
   const seller = data.seller;
+  const [codEnabled, setCodEnabled] = useState(seller.codEnabled);
+  const [codCities, setCodCities] = useState<string[]>(seller.codCities);
+
+  const toggleCity = (city: string) => {
+    setCodCities((current) =>
+      current.includes(city) ? current.filter((name) => name !== city) : [...current, city],
+    );
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,6 +78,8 @@ function SettingsPage() {
           wavepayNumber: value("wavepayNumber"),
           ayapayName: value("ayapayName"),
           ayapayNumber: value("ayapayNumber"),
+          codEnabled,
+          codCities,
         },
       });
       toast.success("Shop settings saved.");
