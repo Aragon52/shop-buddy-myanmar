@@ -29,3 +29,19 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 };
 
 export const LOW_STOCK_THRESHOLD = 5;
+
+/** Main delivery cities and townships offered at checkout. */
+export const MYANMAR_CITIES = [
+  "Yangon",
+  "Mandalay",
+  "Nay Pyi Taw",
+  "Taunggyi",
+  "Bago",
+  "Mawlamyine",
+  "Pathein",
+  "Monywa",
+  "Myitkyina",
+  "Sittwe",
+  "Magway",
+  "Hpa-An",
+] as const;

@@ -552,3 +552,80 @@ export const placeOrder = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, total: product.price_mmk * data.quantity };
   });
+
+const cartCheckoutInput = z.object({
+  sellerId: z.string().uuid(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().min(1).max(50),
+      }),
+    )
+    .min(1, "Please pick at least one product")
+    .max(20),
+  buyerName: z.string().trim().min(1).max(80),
+  buyerPhone: z.string().trim().min(5).max(40),
+  deliveryCity: z.string().trim().min(1).max(60),
+  deliveryAddress: z.string().trim().min(5).max(400),
+  screenshotPath: z.string().trim().min(1, "Payment screenshot is required").max(400),
+});
+
+/** Places a multi-item buyer order — one pending row per cart line. */
+export const placeCartOrder = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => cartCheckoutInput.parse(input))
+  .handler(async ({ data }) => {
+    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
+    const supabase = createPublicSupabaseClient();
+
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, name, price_mmk")
+      .eq("seller_id", data.sellerId)
+      .eq("is_active", true)
+      .in(
+        "id",
+        data.items.map((item) => item.productId),
+      );
+
+    const available = new Map((products ?? []).map((product) => [product.id, product]));
+
+    const lines = data.items.map((item) => {
+      const product = available.get(item.productId);
+      if (!product) throw new Error("One of the products is no longer available.");
+      return {
+        productId: product.id,
+        name: product.name,
+        quantity: item.quantity,
+        unitPriceMmk: product.price_mmk,
+        totalMmk: product.price_mmk * item.quantity,
+      };
+    });
+
+    const { error } = await supabase.from("orders").insert(
+      lines.map((line) => ({
+        seller_id: data.sellerId,
+        product_id: line.productId,
+        buyer_name: data.buyerName,
+        buyer_phone: data.buyerPhone,
+        delivery_city: data.deliveryCity,
+        delivery_address: data.deliveryAddress,
+        quantity: line.quantity,
+        unit_price_mmk: line.unitPriceMmk,
+        payment_screenshot_path: data.screenshotPath,
+        order_status: "pending",
+      })),
+    );
+
+    if (error) throw new Error(error.message);
+
+    return {
+      ok: true,
+      items: lines.map((line) => ({
+        name: line.name,
+        quantity: line.quantity,
+        totalMmk: line.totalMmk,
+      })),
+      total: lines.reduce((sum, line) => sum + line.totalMmk, 0),
+    };
+  });
