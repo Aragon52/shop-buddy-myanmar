@@ -509,8 +509,8 @@ export const updateShopSettings = createServerFn({ method: "POST" })
 export const getPublicStore = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => z.object({ handle: z.string().trim().max(40) }).parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: seller } = await supabase
       .from("sellers")
@@ -564,7 +564,12 @@ const checkoutInput = z.object({
   sellerId: z.string().uuid(),
   productId: z.string().uuid(),
   buyerName: z.string().trim().min(1).max(80),
-  buyerPhone: z.string().trim().min(5).max(40),
+  buyerPhone: z
+    .string()
+    .trim()
+    .min(6)
+    .max(40)
+    .regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
   deliveryCity: z.string().trim().min(1).max(60),
   deliveryAddress: z.string().trim().min(5).max(400),
   quantity: z.number().int().min(1).max(50),
@@ -574,8 +579,8 @@ const checkoutInput = z.object({
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => checkoutInput.parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: product } = await supabase
       .from("products")
@@ -616,7 +621,12 @@ const cartCheckoutInput = z.object({
     .min(1, "Please pick at least one product")
     .max(20),
   buyerName: z.string().trim().min(1).max(80),
-  buyerPhone: z.string().trim().min(5).max(40),
+  buyerPhone: z
+    .string()
+    .trim()
+    .min(6)
+    .max(40)
+    .regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
   deliveryCity: z.string().trim().min(1).max(60),
   deliveryAddress: z.string().trim().min(5).max(400),
   paymentMethod: z.enum(["prepaid", "cod"]),
@@ -630,8 +640,8 @@ const cartCheckoutInput = z.object({
 export const placeCartOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => cartCheckoutInput.parse(input))
   .handler(async ({ data }) => {
-    const { createPublicSupabaseClient } = await import("@/lib/supabase-public.server");
-    const supabase = createPublicSupabaseClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabase = supabaseAdmin;
 
     const { data: seller } = await supabase
       .from("sellers")
