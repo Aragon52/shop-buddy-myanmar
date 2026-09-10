@@ -271,7 +271,7 @@ export const listOrders = createServerFn({ method: "GET" })
     const { data } = await client
       .from("orders")
       .select(
-        "id, buyer_name, buyer_phone, delivery_city, delivery_address, quantity, unit_price_mmk, payment_screenshot_path, order_status, created_at, products(name)",
+        "id, buyer_name, buyer_phone, delivery_city, delivery_address, quantity, unit_price_mmk, payment_screenshot_path, payment_method, delivery_lat, delivery_lng, order_status, created_at, products(name)",
       )
       .eq("seller_id", sellerId)
       .order("created_at", { ascending: false });
@@ -285,6 +285,9 @@ export const listOrders = createServerFn({ method: "GET" })
       quantity: number;
       unit_price_mmk: number;
       payment_screenshot_path: string | null;
+      payment_method: string | null;
+      delivery_lat: number | null;
+      delivery_lng: number | null;
       order_status: string;
       created_at: string;
       products: { name: string } | null;
@@ -304,6 +307,8 @@ export const listOrders = createServerFn({ method: "GET" })
         totalMmk: row.quantity * row.unit_price_mmk,
         productName: row.products?.name ?? "Deleted product",
         status: row.order_status,
+        paymentMethod: row.payment_method ?? "prepaid",
+        mapUrl: buildMapUrl(row.delivery_lat, row.delivery_lng),
         screenshotUrl: await signedUrl(client, "payment-screenshots", row.payment_screenshot_path),
         createdAt: row.created_at,
       })),
