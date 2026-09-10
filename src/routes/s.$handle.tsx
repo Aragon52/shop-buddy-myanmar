@@ -221,7 +221,9 @@ function StorePage() {
           <CheckCircle2 className="mx-auto size-12 text-success" />
           <h1 className="mt-4 text-xl font-bold">Order received</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Thank you for your order! The seller will verify your payment and contact you shortly.
+            {done.paymentMethod === "cod"
+              ? "Thank you for your order! Pay the delivery person at your door. The seller will contact you shortly."
+              : "Thank you for your order! The seller will verify your payment and contact you shortly."}
           </p>
           <ul className="mt-5 space-y-2 text-left text-sm">
             {done.items.map((item) => (
