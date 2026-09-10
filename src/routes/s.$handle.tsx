@@ -126,6 +126,14 @@ function StorePage() {
     { label: "AYA Pay", name: store.seller.ayapayName, number: store.seller.ayapayNumber },
   ].filter((method) => method.number.length > 0);
 
+  const chosenCity = city === OTHER_CITY ? otherCity.trim() : city;
+  const codCities = store.seller.codCities ?? [];
+  const codAllowed =
+    store.seller.codEnabled &&
+    chosenCity.length > 0 &&
+    codCities.some((allowed) => allowed.toLowerCase() === chosenCity.toLowerCase());
+  const effectiveMethod: "prepaid" | "cod" = codAllowed ? paymentMethod : "prepaid";
+
   const copy = async (value: string, label: string) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -147,6 +155,9 @@ function StorePage() {
   const resetAll = () => {
     setCart({});
     setCity("");
+    setOtherCity("");
+    setPaymentMethod("prepaid");
+    setPin(null);
     setScreenshot(null);
     setStep("browse");
   };
@@ -154,14 +165,13 @@ function StorePage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (lines.length === 0) return;
-    if (!screenshot) {
+    if (effectiveMethod === "prepaid" && !screenshot) {
       toast.error("Please attach your payment screenshot.");
       return;
     }
 
     const form = new FormData(event.currentTarget);
     const value = (field: string) => String(form.get(field) ?? "").trim();
-    const chosenCity = city === OTHER_CITY ? value("otherCity") : city;
     if (!chosenCity) {
       toast.error("Please choose your city or township.");
       return;
@@ -169,10 +179,15 @@ function StorePage() {
 
     setBusy(true);
     try {
-      const extension = screenshot.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${store.seller.id}/${crypto.randomUUID()}.${extension}`;
-      const { error } = await supabase.storage.from("payment-screenshots").upload(path, screenshot);
-      if (error) throw new Error(error.message);
+      let path: string | null = null;
+      if (effectiveMethod === "prepaid" && screenshot) {
+        const extension = screenshot.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        path = `${store.seller.id}/${crypto.randomUUID()}.${extension}`;
+        const { error } = await supabase.storage
+          .from("payment-screenshots")
+          .upload(path, screenshot);
+        if (error) throw new Error(error.message);
+      }
 
       const result = await submitOrder({
         data: {
@@ -182,11 +197,15 @@ function StorePage() {
           buyerPhone: value("buyerPhone"),
           deliveryCity: chosenCity,
           deliveryAddress: value("deliveryAddress"),
+          paymentMethod: effectiveMethod,
           screenshotPath: path,
+          deliveryLat: pin?.lat ?? null,
+          deliveryLng: pin?.lng ?? null,
+          deliveryPlaceLabel: null,
         },
       });
 
-      setDone({ items: result.items, total: result.total });
+      setDone({ items: result.items, total: result.total, paymentMethod: effectiveMethod });
       resetAll();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not send your order.");
