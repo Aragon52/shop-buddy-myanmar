@@ -84,6 +84,8 @@ type MinimalClient = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     insert: (values: unknown) => any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    upsert: (values: unknown) => any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     update: (values: unknown) => any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete: () => any;

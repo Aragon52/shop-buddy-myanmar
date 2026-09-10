@@ -1,7 +1,7 @@
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { LogOut } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -10,7 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { getShopOverview, updateShopSettings } from "@/lib/bioshop.functions";
+import {
+  getAlertSettings,
+  getShopOverview,
+  saveAlertSettings,
+  sendTestAlert,
+  updateShopSettings,
+} from "@/lib/bioshop.functions";
+
+const alertsQuery = queryOptions({
+  queryKey: ["alert-settings"],
+  queryFn: () => getAlertSettings(),
+});
 
 const overviewQuery = queryOptions({
   queryKey: ["shop-overview"],
@@ -18,7 +29,12 @@ const overviewQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(overviewQuery),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(overviewQuery),
+      context.queryClient.ensureQueryData(alertsQuery),
+    ]);
+  },
   component: SettingsPage,
   errorComponent: ({ error }) => (
     <p role="alert" className="p-6 text-sm text-destructive">
@@ -153,11 +169,82 @@ function SettingsPage() {
         </Button>
       </form>
 
+      <OrderAlertsSection />
+
       <Button variant="ghost" className="mt-4 w-full text-destructive" onClick={handleSignOut}>
         <LogOut className="size-4" />
         Sign out
       </Button>
     </AppShell>
+  );
+}
+
+function OrderAlertsSection() {
+  const { data } = useSuspenseQuery(alertsQuery);
+  const queryClient = useQueryClient();
+  const save = useServerFn(saveAlertSettings);
+  const test = useServerFn(sendTestAlert);
+  const [chatId, setChatId] = useState(data.telegramChatId);
+  const [busy, setBusy] = useState(false);
+
+  const handleSave = async () => {
+    setBusy(true);
+    try {
+      await save({ data: { telegramChatId: chatId.trim() } });
+      await queryClient.invalidateQueries({ queryKey: ["alert-settings"] });
+      toast.success("Order alerts updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save your alert settings.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleTest = async () => {
+    setBusy(true);
+    try {
+      await test({ data: {} });
+      toast.success("Test alert sent to Telegram.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not send the test alert.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mt-6 rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2">
+        <Bell className="size-4 text-primary" />
+        <h2 className="text-sm font-semibold">New order alerts</h2>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        While this app is open you get a sound and a banner for every new order. Add your Telegram
+        chat id to also get a message on your phone.
+      </p>
+      <div className="mt-3 space-y-1.5">
+        <Label htmlFor="telegramChatId">Telegram chat id</Label>
+        <Input
+          id="telegramChatId"
+          inputMode="numeric"
+          value={chatId}
+          maxLength={40}
+          placeholder="e.g. 123456789"
+          onChange={(event) => setChatId(event.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          Open Telegram, message @userinfobot and it replies with your id.
+        </p>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button type="button" onClick={handleSave} disabled={busy}>
+          Save alerts
+        </Button>
+        <Button type="button" variant="outline" onClick={handleTest} disabled={busy}>
+          Send test
+        </Button>
+      </div>
+    </section>
   );
 }
 
