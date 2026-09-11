@@ -118,6 +118,18 @@ function Landing() {
             </div>
           ))}
         </div>
+
+        <footer className="mt-14 flex flex-wrap gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
+          <Link to="/privacy" className="underline hover:text-foreground">
+            Privacy policy
+          </Link>
+          <Link to="/terms" className="underline hover:text-foreground">
+            Terms of service
+          </Link>
+          <Link to="/account-deletion" className="underline hover:text-foreground">
+            Delete my data
+          </Link>
+        </footer>
       </div>
     </div>
   );
